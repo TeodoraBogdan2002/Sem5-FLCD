@@ -41,6 +41,111 @@ public class MyScanner {
         return fileContent.toString().replace("\t", "");
     }
 
+    private List<Pair<String, Pair<Integer, Integer>>> tokenize(List<String> tokensToBe){
+
+        List<Pair<String, Pair<Integer, Integer>>> resultedTokens = new ArrayList<>();
+        boolean isStringConstant = false;
+        boolean isCharConstant = false;
+        StringBuilder createdString = new StringBuilder();
+        int numberLine = 1;
+        int numberColumn = 1;
+
+        for(String t: tokensToBe){
+            switch (t) {
+                case "\"":
+                    if (isStringConstant) {
+                        createdString.append(t);
+                        resultedTokens.add(new Pair<>(createdString.toString(), new Pair<>(numberLine, numberColumn)));
+                        createdString = new StringBuilder();
+                    }else {
+                        createdString.append(t);
+                    }
+                    isStringConstant = !isStringConstant;
+                    break;
+                case "'":
+                    if (isCharConstant) {
+                        createdString.append(t);
+                        resultedTokens.add(new Pair<>(createdString.toString(), new Pair<>(numberLine, numberColumn)));
+                        createdString = new StringBuilder();
+                    }
+                    else {
+                        createdString.append(t);
+                    }
+                    isCharConstant = !isCharConstant;
+                    break;
+                case "\n":
+                    numberLine++;
+                    numberColumn = 1;
+                    break;
+                default:
+                    if (isStringConstant) {
+                        createdString.append(t);
+                    } else if (isCharConstant) {
+                        createdString.append(t);
+                    } else if (!t.equals(" ")) {
+                        resultedTokens.add(new Pair<>(t, new Pair<>(numberLine, numberColumn)));
+                        numberColumn++;
+                    }
+                    break;
+            }
+        }
+        return resultedTokens;
+    }
+
+    public void scan() {
+        List<Pair<String, Pair<Integer, Integer>>> tokens = this.createListOfProgramsElems();
+        AtomicBoolean lexicalErrorExists = new AtomicBoolean(false);
+        if (tokens != null) {
+            tokens.forEach((t) -> {
+                String token = (String)t.getFirst();
+                if (this.reservedWords.contains(token)) {
+                    this.pif.add(new Pair<>(token, new Pair<>(-1, -1)), 2);
+                } else if (this.operators.contains(token)) {
+                    this.pif.add(new Pair<>(token, new Pair<>(-1, -1)), 3);
+                } else if (this.separators.contains(token)) {
+                    this.pif.add(new Pair<>(token, new Pair<>(-1, -1)), 4);
+                } else if (Pattern.compile("^0|[-|+][1-9]([0-9])*|'[1-9]'|'[a-zA-Z]'|\"[0-9]*[a-zA-Z ]*\"$").matcher(token).matches()) {
+                    this.symbolTable.add(token);
+                    this.pif.add(new Pair<>(token, this.symbolTable.findPositionOfTerm(token)), 0);
+                } else if (Pattern.compile("^([a-zA-Z]|_)|[a-zA-Z_0-9]*").matcher(token).matches()) {
+                    this.symbolTable.add(token);
+                    this.pif.add(new Pair<>(token, this.symbolTable.findPositionOfTerm(token)), 1);
+                } else {
+                    Pair<Integer, Integer> pairLineColumn = (Pair)t.getSecond();
+                    PrintStream var10000 = System.out;
+                    Object var10001 = pairLineColumn.getFirst();
+                    var10000.println("Error at line: " + var10001 + " and column: " + pairLineColumn.getSecond() + ", invalid token: " + (String)t.getFirst());
+                    lexicalErrorExists.set(true);
+                }
+
+            });
+            if (!lexicalErrorExists.get()) {
+                System.out.println("Program is lexically correct!");
+            }
+
+        }
+    }
+
+    private List<Pair<String, Pair<Integer, Integer>>> createListOfProgramsElems() {
+        try{
+            String content = this.readFile();
+            String separatorsString = this.separators.stream().reduce("", (a,b)->(a + b));
+            StringTokenizer tokenizer = new StringTokenizer(content, separatorsString, true);
+
+            List<String> tokens = Collections.list(tokenizer)
+                    .stream()
+                    .map(t->(String) t)
+                    .collect(Collectors.toList());
+
+            return tokenize(tokens);
+        }
+        catch (FileNotFoundException e){
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public ProgramInternalForm getPif() {
         return this.pif;
     }
