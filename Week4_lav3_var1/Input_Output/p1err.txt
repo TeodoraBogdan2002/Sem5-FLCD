@@ -1,6 +1,6 @@
 int a=+2;
 int b;
-int c;
+int $;
 int max;
 
 read ( a );
@@ -18,5 +18,5 @@ if ( c > max ) {
 	max = c;
 }
 
-write ( 'abcde' );
+write ( '' );
 write ( max );
