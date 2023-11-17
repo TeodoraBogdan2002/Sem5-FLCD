@@ -1,0 +1,8 @@
+A;B;
+A
+a;b;
+A;
+A a A
+A a B
+A b B
+B b A

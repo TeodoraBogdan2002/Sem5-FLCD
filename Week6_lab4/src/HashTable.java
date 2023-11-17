@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 
 public class HashTable {
-    private Integer size;
-    private ArrayList<ArrayList<String>> table;
+    private final Integer size;
+    private final ArrayList<ArrayList<String>> table;
 
     public HashTable(Integer size) {
         this.size = size;
@@ -15,8 +15,8 @@ public class HashTable {
     }
 
     public String findByPos(Pair<Integer, Integer> pos) {
-        if (this.table.size() > (Integer)pos.getFirst() && ((ArrayList)this.table.get((Integer)pos.getFirst())).size() > (Integer)pos.getSecond()) {
-            return (String)((ArrayList)this.table.get((Integer)pos.getFirst())).get((Integer)pos.getSecond());
+        if (this.table.size() > pos.getFirst() && this.table.get(pos.getFirst()).size() > pos.getSecond()) {
+            return (String)((ArrayList)this.table.get(pos.getFirst())).get(pos.getSecond());
         } else {
             throw new IndexOutOfBoundsException("Invalid position");
         }
@@ -28,12 +28,12 @@ public class HashTable {
 
     public Pair<Integer, Integer> findPositionOfTerm(String elem) {
         int pos = this.hash(elem);
-        if (!((ArrayList)this.table.get(pos)).isEmpty()) {
-            ArrayList<String> elems = (ArrayList)this.table.get(pos);
+        if (!this.table.get(pos).isEmpty()) {
+            ArrayList<String> elems = this.table.get(pos);
 
             for(int i = 0; i < elems.size(); ++i) {
-                if (((String)elems.get(i)).equals(elem)) {
-                    return new Pair(pos, i);
+                if (elems.get(i).equals(elem)) {
+                    return new Pair<>(pos, i);
                 }
             }
         }
@@ -41,18 +41,13 @@ public class HashTable {
         return null;
     }
 
-    private Integer hash(String key) {
+    private Integer hash(String key){
         int sum_chars = 0;
         char[] key_characters = key.toCharArray();
-        char[] var4 = key_characters;
-        int var5 = key_characters.length;
-
-        for(int var6 = 0; var6 < var5; ++var6) {
-            char c = var4[var6];
+        for(char c: key_characters){
             sum_chars += c;
         }
-
-        return sum_chars % this.size;
+        return sum_chars % size;
     }
 
     public boolean containsTerm(String elem) {
@@ -64,7 +59,7 @@ public class HashTable {
             return false;
         } else {
             Integer pos = this.hash(elem);
-            ArrayList<String> elems = (ArrayList)this.table.get(pos);
+            ArrayList<String> elems = this.table.get(pos);
             elems.add(elem);
             return true;
         }
@@ -74,7 +69,7 @@ public class HashTable {
         StringBuilder computedString = new StringBuilder();
 
         for(int i = 0; i < this.table.size(); ++i) {
-            if (((ArrayList)this.table.get(i)).size() > 0) {
+            if (this.table.get(i).size() > 0) {
                 computedString.append(i);
                 computedString.append(" - ");
                 computedString.append(this.table.get(i));
